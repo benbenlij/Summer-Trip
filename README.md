@@ -1,2 +1,0 @@
-# Summer-Trip
-Family Trip
