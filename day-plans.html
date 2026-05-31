@@ -1,0 +1,300 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.planner{padding:16px 0}
+.city-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.city-tab{padding:7px 16px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;font-weight:500;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);transition:all .15s}
+.city-tab.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-primary)}
+.city-view{display:none}.city-view.active{display:block}
+.day-tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.day-tab{padding:5px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);transition:all .15s}
+.day-tab.active{border-color:var(--color-border-primary);color:var(--color-text-primary);font-weight:500}
+.day-view{display:none}.day-view.active{display:block}
+.day-header{font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.day-subtitle{font-size:12px;color:var(--color-text-secondary);margin-bottom:14px}
+.timeline{display:flex;flex-direction:column;gap:0}
+.slot{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.slot:last-child{border-bottom:none}
+.time-col{min-width:72px;font-size:11px;color:var(--color-text-tertiary);padding-top:2px;text-align:right;flex-shrink:0}
+.dot-col{display:flex;flex-direction:column;align-items:center;width:16px;flex-shrink:0}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.dot-line{width:1px;background:var(--color-border-tertiary);flex:1;min-height:12px;margin-top:3px}
+.slot-body{flex:1}
+.slot-name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.slot-note{font-size:11px;color:var(--color-text-secondary);margin-top:1px}
+.badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;margin-right:4px;margin-top:3px;font-weight:500}
+.b-food{background:#FAECE7;color:#993C1D}.b-shop{background:#E6F1FB;color:#185FA5}
+.b-exp{background:#E1F5EE;color:#0F6E56}.b-beauty{background:#FBEAF0;color:#993556}
+.b-transit{background:#F1EFE8;color:#5F5E5A}.b-tip{background:#FAEEDA;color:#854F0B}
+@media(prefers-color-scheme:dark){
+.b-food{background:#4A1B0C;color:#F0997B}.b-shop{background:#042C53;color:#85B7EB}
+.b-exp{background:#04342C;color:#5DCAA5}.b-beauty{background:#4B1528;color:#ED93B1}
+.b-transit{background:#2C2C2A;color:#B4B2A9}.b-tip{background:#412402;color:#EF9F27}}
+.dot-food{background:#D85A30}.dot-shop{background:#378ADD}.dot-exp{background:#1D9E75}
+.dot-beauty{background:#D4537E}.dot-transit{background:#888780}.dot-tip{background:#BA7517}
+.day-summary{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.summary-pill{font-size:11px;padding:2px 9px;border-radius:10px;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+</style>
+
+<div class="planner">
+<div class="city-tabs" id="cityTabs"></div>
+<div id="cityViews"></div>
+</div>
+
+<script>
+const cities=[
+{id:"tokyo",label:"Tokyo (5 days)",days:[
+{title:"Day 1 — Harajuku & Omotesando",subtitle:"Shopping corridor from Harajuku station down to Shibuya",slots:[
+{t:"9:00 AM",n:"Arrive Harajuku station",note:"Start point for the day",type:"transit"},
+{t:"9:15 AM",n:"Laforet Harajuku",note:"Multi-floor alt fashion mall — L.W.C. is inside on B2F",type:"shop"},
+{t:"10:00 AM",n:"OY HARAJUKU",note:"Nearby Harajuku, highly rated",type:"shop"},
+{t:"10:30 AM",n:"Adidas Originals Flagship 原宿",note:"Flagship store, Harajuku",type:"shop"},
+{t:"11:00 AM",n:"Levi's Harajuku Store",note:"",type:"shop"},
+{t:"11:30 AM",n:"Walk Omotesando-dori",note:"15-min scenic walk south",type:"transit"},
+{t:"12:00 PM",n:"AMAM DACOTAN",note:"Bakery lunch along Omotesando",type:"food"},
+{t:"1:00 PM",n:"ann fragrance 表参道アトリエ",note:"Custom fragrance studio — allow 30–45 min",type:"shop"},
+{t:"2:00 PM",n:"Onitsuka Tiger Omotesando NIPPON MADE",note:"",type:"shop"},
+{t:"2:30 PM",n:"The SHEL'TTER TOKYO (Omokado)",note:"Tokyu Plaza Omotesando rooftop view",type:"shop"},
+{t:"3:15 PM",n:"CA4LA",note:"Hat & accessories shop",type:"shop"},
+{t:"4:00 PM",n:"Arrive Shibuya",note:"10-min walk south",type:"transit"},
+{t:"4:15 PM",n:"Shibuya Parco",note:"Pop-up floors, Nintendo store, art spaces",type:"shop"},
+{t:"5:30 PM",n:"cas:pace 殼空間",note:"Design shop",type:"shop"},
+{t:"6:30 PM",n:"Sushi no Midori Shibuya",note:"Expect queue — arrive early, get ticket",type:"food"},
+{t:"8:00 PM",n:"Stüssy Shibuya Chapter",note:"Evening browse",type:"shop"},
+]},
+{title:"Day 2 — Ginza, Nihonbashi & Yurakucho",subtitle:"Walk east from Tokyo Station along the shopping and food strip",slots:[
+{t:"9:00 AM",n:"Tokyo Station arrival",note:"Start at Yaesu exit",type:"transit"},
+{t:"9:15 AM",n:"Tokyo Tulip Rose Tokyo Station Store",note:"Pick up sweets / breakfast pastry",type:"food"},
+{t:"9:45 AM",n:"Onitsuka Tiger NIPPON MADE Yaesu",note:"Tokyo Midtown Yaesu",type:"shop"},
+{t:"10:30 AM",n:"Tendon Kanekohannosuke Nihonbashi",note:"Early lunch — famous tendon, queue moves fast",type:"food"},
+{t:"11:30 AM",n:"Tonkatsu Hajime Nihonbashi",note:"Alternative if skipping tendon",type:"food"},
+{t:"12:30 PM",n:"一汁おにぎり 一粒万福",note:"Premium onigiri snack",type:"food"},
+{t:"1:15 PM",n:"Conveyor Kaiten Sushi Ginza Onodera",note:"Ginza — upscale kaiten sushi",type:"food"},
+{t:"2:30 PM",n:"Quil Fait Bon Grand Maison Ginza",note:"Fruit tarts — gorgeous presentation",type:"food"},
+{t:"3:30 PM",n:"GARIGUETTE",note:"Strawberry dessert shop",type:"food"},
+{t:"4:30 PM",n:"Iyoshi Cola",note:"Craft cola shop",type:"food"},
+{t:"5:30 PM",n:"Sumiyaki Unafuji Yurakucho",note:"Dinner — charcoal-grilled eel near Ginza",type:"food"},
+{t:"7:00 PM",n:"Tempura Kakiage Yukimura",note:"Alternative dinner or add-on",type:"food"},
+]},
+{title:"Day 3 — Shinjuku",subtitle:"Ramen, nails, noodles, and evening yakiniku",slots:[
+{t:"9:00 AM",n:"Nails Bar Shinjuku",note:"Book in advance — highly rated at 4.9",type:"beauty"},
+{t:"12:00 PM",n:"Wagyu Ramen Goku",note:"Lunch — 4.8 stars, arrive before peak",type:"food"},
+{t:"1:30 PM",n:"Salmon Noodle 3.0",note:"Second noodle option if skipping ramen",type:"food"},
+{t:"4:00 PM",n:"Explore Shinjuku streets",note:"Kabukicho, Golden Gai, Omoide Yokocho",type:"exp"},
+{t:"6:30 PM",n:"Wagyu yakiniku Tokori Shinjuku NOWA",note:"Dinner — wagyu yakiniku",type:"food"},
+{t:"8:30 PM",n:"Sushi no Midori (Shinjuku branch)",note:"If skipping yakiniku — popular conveyor sushi",type:"food"},
+]},
+{title:"Day 4 — Asakusa & Ueno",subtitle:"Traditional Tokyo by day, Daikanyama and Ebisu in the evening",slots:[
+{t:"9:00 AM",n:"Arrive Asakusa",note:"Senso-ji temple first before crowds",type:"exp"},
+{t:"10:00 AM",n:"Don Quijote Asakusa",note:"Souvenir shopping",type:"shop"},
+{t:"10:45 AM",n:"Asakusa Unana",note:"Banana sweets snack",type:"food"},
+{t:"11:15 AM",n:"IYOSHI COLA Asakusa Rokku",note:"Craft cola — 4.9 stars",type:"food"},
+{t:"11:45 AM",n:"Doteno Iseya",note:"Oden & yakitori lunch spot",type:"food"},
+{t:"1:00 PM",n:"Walk/train to Ueno",note:"15 min on foot or 1 stop",type:"transit"},
+{t:"1:30 PM",n:"Local Fish Yatai Hamachan Ueno",note:"Seafood stall, casual lunch",type:"food"},
+{t:"2:30 PM",n:"Onitsuka Tiger Parco_ya Ueno",note:"Parco_ya mall",type:"shop"},
+{t:"3:30 PM",n:"Princess Tart 池袋",note:"Ikebukuro — 1 stop from Ueno, famous tarts",type:"food"},
+{t:"5:00 PM",n:"Train to Ebisu / Daikanyama",note:"~25 min",type:"transit"},
+{t:"5:30 PM",n:"Betty Smith Ebisu Factory",note:"Custom denim jeans — allow 1 hr if customising",type:"shop"},
+{t:"6:45 PM",n:"Tonkatsu Hinata",note:"Dinner near Daikanyama/Shibuya",type:"food"},
+]},
+{title:"Day 5 — Shimokitazawa, Tsukishima & Waterfront",subtitle:"Vintage neighbourhood in the morning, waterfront sweets in the afternoon",slots:[
+{t:"10:00 AM",n:"Shimokitazawa",note:"Spend 2 hrs — vintage shops, thrift stores, cafés",type:"exp"},
+{t:"10:15 AM",n:"LAMMFROMM",note:"Unique accessories in Shimokitazawa",type:"shop"},
+{t:"12:00 PM",n:"Lunch in Shimokitazawa",note:"Many indie cafés and restaurants",type:"food"},
+{t:"1:30 PM",n:"Train to Tsukishima / Kachidoki",note:"~35 min via Hanzomon/Oedo line",type:"transit"},
+{t:"2:15 PM",n:"TRUFFLE DONUT 勝どき店",note:"Unique truffle-flavoured donuts",type:"food"},
+{t:"3:15 PM",n:"焼肉 TAKATOEN 貴闘炎",note:"Evening yakiniku — book ahead",type:"food"},
+{t:"5:30 PM",n:"Flipper's Shibuya",note:"Soufflé pancakes — head back toward Shibuya",type:"food"},
+{t:"7:00 PM",n:"EDW yellow Shibuya",note:"Evening drinks",type:"food"},
+{t:"8:00 PM",n:"RURU SHIBUYA",note:"Browse the complex",type:"shop"},
+]},
+]},
+{id:"osaka",label:"Osaka (3 days)",days:[
+{title:"Day 1 — Shinsaibashi & Dotonbori",subtitle:"Osaka's food heartland — spend the whole day and evening here",slots:[
+{t:"10:00 AM",n:"Arrive Shinsaibashi",note:"Start at the covered arcade",type:"transit"},
+{t:"10:15 AM",n:"Hyde&Away Osaka",note:"Morning browse",type:"shop"},
+{t:"11:00 AM",n:"Shinsaibashi Sand",note:"Famous katsu sando lunch",type:"food"},
+{t:"12:00 PM",n:"Harukoma (Main Store)",note:"Kushikatsu — classic Osaka street food",type:"food"},
+{t:"1:30 PM",n:"Browse Dotonbori",note:"Walk the canal stretch",type:"exp"},
+{t:"3:00 PM",n:"とんかつ なぎかつ【NAGIKATSU】",note:"4.9 stars — save space for an early dinner here",type:"food"},
+{t:"5:00 PM",n:"Miffi Tennoji MIO Ten Flowers",note:"Quick detour to Tennoji — 1 stop south",type:"shop"},
+{t:"6:30 PM",n:"Back to Namba area",note:"",type:"transit"},
+{t:"7:00 PM",n:"Sushi Bar FUJIYAM",note:"Omakase sushi — book ahead, 4.8 stars",type:"food"},
+{t:"9:00 PM",n:"Osaka Tonkatsu (formerly Chiyomatsu)",note:"Late snack option",type:"food"},
+]},
+{title:"Day 2 — Umeda & Kitahama",subtitle:"Northern Osaka — shopping malls, bakeries, and shabu-shabu",slots:[
+{t:"9:30 AM",n:"Arrive Umeda",note:"Osaka's main hub",type:"transit"},
+{t:"9:45 AM",n:"grenier Kitahama branch",note:"Breakfast pastry — 15 min by subway from Umeda",type:"food"},
+{t:"11:00 AM",n:"フラワーミッフィー ルクア大阪店",note:"Miffy flower shop inside Lucua Osaka at Umeda",type:"shop"},
+{t:"12:00 PM",n:"レストラン 乃呂",note:"Lunch — kaiseki/teppanyaki in Umeda area",type:"food"},
+{t:"1:30 PM",n:"Explore Umeda underground mall",note:"Whity Umeda / Diamor Osaka",type:"exp"},
+{t:"3:30 PM",n:"일미간장게장 (Ilmi Ganjang Gejang)",note:"Korean-style marinated crab — Osaka Koreatown (Tsuruhashi, 20 min from Umeda)",type:"food"},
+{t:"5:30 PM",n:"Return to Umeda area",note:"",type:"transit"},
+{t:"6:30 PM",n:"Shabu-shabu Niku-no-Asatsu Umeda Ohatsu Tenjin",note:"Dinner — all-you-can-eat shabu & sukiyaki, 4.7 stars",type:"food"},
+]},
+{title:"Day 3 — Kadoma Outlet & final Osaka food",subtitle:"Morning outlet run, last Osaka meals before heading to Kyoto",slots:[
+{t:"9:30 AM",n:"LaLaport Kadoma / Mitsui Outlet Park",note:"~20 min by train — arrive early for best selection",type:"shop"},
+{t:"1:00 PM",n:"Return to central Osaka",note:"",type:"transit"},
+{t:"1:30 PM",n:"Osaka Tonkatsu (formerly Chiyomatsu)",note:"Lunch — if skipped on Day 1",type:"food"},
+{t:"3:00 PM",n:"Hyde&Away Osaka",note:"Any remaining shopping",type:"shop"},
+{t:"4:30 PM",n:"Any missed food stops",note:"NAGIKATSU or Harukoma if not visited",type:"food"},
+{t:"6:00 PM",n:"Travel to Kyoto",note:"~15 min by shinkansen / 40 min by express",type:"transit"},
+]},
+]},
+{id:"kyoto",label:"Kyoto (3 days)",days:[
+{title:"Day 1 — Gion, Pontocho & Kiyomizudera",subtitle:"Classic Kyoto tourist circuit with your saved spots woven in",slots:[
+{t:"8:30 AM",n:"Arrive Kiyomizudera area",note:"Go early — less crowded",type:"exp"},
+{t:"9:30 AM",n:"My Only Fragrance KIYOMIZU",note:"Custom perfume workshop — 4.9 stars, must-do. Book ahead",type:"shop"},
+{t:"10:30 AM",n:"Walk Ninenzaka & Sannenzaka",note:"Cobblestone alleys, souvenir shops",type:"exp"},
+{t:"12:00 PM",n:"Miffy's Oyatsu-do by Miffy's Kitchen Gion",note:"Snack in Gion",type:"food"},
+{t:"1:00 PM",n:"Explore Gion / Hanamikoji",note:"Geisha district stroll",type:"exp"},
+{t:"3:00 PM",n:"GYUKATSU Kyoto Katsugyu Pontocho",note:"Beef katsu — 4.8 stars, long queue possible. Go at 3pm to avoid peak",type:"food"},
+{t:"5:00 PM",n:"Shiki",note:"Café or restaurant in Gion area",type:"food"},
+{t:"7:00 PM",n:"Evening Pontocho alley stroll",note:"Lantern-lit dining street",type:"exp"},
+]},
+{title:"Day 2 — Arashiyama",subtitle:"Half-day in the bamboo grove area, back to center for teamLab",slots:[
+{t:"8:30 AM",n:"Arrive Arashiyama",note:"Bamboo grove is best before 9am",type:"exp"},
+{t:"9:30 AM",n:"Arashiyama Miffy Sakura Kitchen",note:"Breakfast / brunch stop",type:"food"},
+{t:"10:30 AM",n:"Unagi No Naruse - Arashiyama",note:"Grilled eel lunch — 4.7 stars",type:"food"},
+{t:"12:00 PM",n:"Explore Tenryu-ji temple & riverbank",note:"Scenic walk along Oi River",type:"exp"},
+{t:"2:00 PM",n:"Train back to central Kyoto",note:"~25 min on Sagano/Randen line",type:"transit"},
+{t:"3:00 PM",n:"teamLab Biovortex Kyoto",note:"Book tickets well in advance — allow 1.5–2 hrs",type:"exp"},
+{t:"5:30 PM",n:"Capital Touyoutei - Main Shop",note:"Near city center, famous Kyoto beef",type:"food"},
+{t:"7:30 PM",n:"Hitsuji Doughnuts",note:"Dessert after dinner",type:"food"},
+]},
+{title:"Day 3 — Central Kyoto & departure",subtitle:"Karasuma area shopping and final meals before moving on",slots:[
+{t:"9:30 AM",n:"Amam Dacotan Kyoto",note:"Bakery breakfast",type:"food"},
+{t:"10:30 AM",n:"(THISIS)SHIZEN",note:"Explore central Kyoto café / boutique",type:"exp"},
+{t:"12:00 PM",n:"Capital Touyoutei (if missed)",note:"Or any missed food from Day 1–2",type:"food"},
+{t:"1:30 PM",n:"Nishiki Market browse",note:"Kyoto's kitchen street — snacks and pickles",type:"exp"},
+{t:"3:00 PM",n:"Any remaining shops",note:"Karasuma / Shijo shopping area",type:"shop"},
+{t:"5:00 PM",n:"Travel to Seoul (or Tokyo → Seoul)",note:"Kansai Airport — allow 75 min travel time",type:"transit"},
+]},
+]},
+{id:"seoul",label:"Seoul (5 days)",days:[
+{title:"Day 1 — Seongsu-dong",subtitle:"Seoul's trendiest neighbourhood — a full day is worth it",slots:[
+{t:"10:00 AM",n:"Arrive Seongsu station",note:"",type:"transit"},
+{t:"10:15 AM",n:"Cafe Onion Seongsu",note:"Iconic converted factory café — breakfast here",type:"food"},
+{t:"11:30 AM",n:"Explore Seongsu streets",note:"Indie boutiques, galleries, workshop spaces",type:"exp"},
+{t:"1:00 PM",n:"Ggupdang Seongsu",note:"Dessert café lunch",type:"food"},
+{t:"2:30 PM",n:"SoSo Sarada Jamsilsaenae",note:"Salad bar — Jamsil (1 stop east)",type:"food"},
+{t:"4:00 PM",n:"TETEROT SALON",note:"5.0 stars — dessert salon in Ikseon-dong (30 min by subway)",type:"food"},
+{t:"5:30 PM",n:"Ikseon-dong hanok alley",note:"Wander the traditional alley, street snacks",type:"exp"},
+{t:"7:00 PM",n:"Lee Jung Won",note:"Korean fine dining — 4.9 stars, book ahead",type:"food"},
+]},
+{title:"Day 2 — Hongdae",subtitle:"Youth culture, shopping, and Seoul's best eel",slots:[
+{t:"10:30 AM",n:"Arrive Hongdae",note:"",type:"transit"},
+{t:"10:45 AM",n:"NYU NYU House",note:"Kawaii fashion — 4.8 stars",type:"shop"},
+{t:"11:30 AM",n:"NYU NYU",note:"Main shop nearby",type:"shop"},
+{t:"12:30 PM",n:"MIMILINE (main branch)",note:"K-fashion, 4.7 stars",type:"shop"},
+{t:"1:30 PM",n:"Ilsim Eel Hongdae Branch",note:"Lunch — 5.0 stars, grilled eel rice",type:"food"},
+{t:"3:00 PM",n:"LOOF",note:"Café — 4.9 stars",type:"food"},
+{t:"4:30 PM",n:"새라울 (Saeraul)",note:"Mapo area, 5-min taxi from Hongdae",type:"food"},
+{t:"6:30 PM",n:"Explore Hongdae night market",note:"Street performances, food stalls",type:"exp"},
+]},
+{title:"Day 3 — Gangnam, Apgujeong & Dosan",subtitle:"Upscale Seoul — flagship stores and fine dining",slots:[
+{t:"10:00 AM",n:"Arrive Gangnam / Apgujeong",note:"",type:"transit"},
+{t:"10:15 AM",n:"adidas Brand Flagship Seoul",note:"Massive flagship — 4.9 stars",type:"shop"},
+{t:"11:30 AM",n:"Verish Dosan Flagship Store",note:"Korean fashion brand, Dosan Park area",type:"shop"},
+{t:"1:00 PM",n:"Lunch near Dosan Park",note:"Many cafés and restaurants in the area",type:"food"},
+{t:"2:30 PM",n:"Browse Garosu-gil",note:"Tree-lined boutique street",type:"exp"},
+{t:"4:00 PM",n:"TETEROT SALON (if missed Day 1)",note:"Dessert",type:"food"},
+{t:"5:30 PM",n:"Goto Mall",note:"Underground fashion, City Hall area — 20 min by subway",type:"shop"},
+{t:"7:00 PM",n:"일미간장게장",note:"Dinner — marinated soy crab rice, 3.8 stars",type:"food"},
+]},
+{title:"Day 4 — Myeongdong, Insadong & Ikseon",subtitle:"Combine the tourist hub with the historic hanok alley",slots:[
+{t:"10:00 AM",n:"Arrive Myeongdong",note:"",type:"transit"},
+{t:"10:15 AM",n:"Mimiline (Myeongdong branch)",note:"K-fashion — 4.8 stars",type:"shop"},
+{t:"11:30 AM",n:"K-beauty shopping",note:"Myeongdong street stalls and brand stores",type:"shop"},
+{t:"1:00 PM",n:"Walk to Insadong",note:"20 min walk or 1 stop",type:"transit"},
+{t:"1:30 PM",n:"Seochongeumsang",note:"Near Gyeongbokgung — Korean restaurant, 4.4 stars",type:"food"},
+{t:"3:00 PM",n:"Ikseon-dong",note:"Afternoon stroll — dessert cafés and vintage shops",type:"exp"},
+{t:"5:00 PM",n:"TETEROT SALON",note:"If not visited yet",type:"food"},
+{t:"6:30 PM",n:"Lee Jung Won (if missed Day 1)",note:"Or dinner in Insadong area",type:"food"},
+]},
+{title:"Day 5 — Ewha, Sinchon & final picks",subtitle:"University district and wrapping up any missed spots",slots:[
+{t:"10:00 AM",n:"Arrive Ewha Womans University",note:"",type:"transit"},
+{t:"10:15 AM",n:"miffy style",note:"Miffy goods store near campus",type:"shop"},
+{t:"10:45 AM",n:"Starbucks Ewha Womans University",note:"Famous underground campus location — worth seeing",type:"food"},
+{t:"11:30 AM",n:"Risa Magli",note:"Fashion browsing in Sinchon area",type:"shop"},
+{t:"12:30 PM",n:"Walk to Sinchon / Hongdae",note:"10-min walk",type:"transit"},
+{t:"1:00 PM",n:"Any missed Hongdae spots",note:"LOOF, 새라울, or missed shopping",type:"food"},
+{t:"2:30 PM",n:"Seongsu revisit (optional)",note:"If you want more time in the neighbourhood",type:"exp"},
+{t:"4:00 PM",n:"Final shopping",note:"Myeongdong or Goto Mall for last-minute picks",type:"shop"},
+{t:"6:00 PM",n:"Farewell dinner",note:"Ilsim Eel or Lee Jung Won if not visited",type:"food"},
+]},
+]},
+];
+
+const typeColors={food:"dot-food",shop:"dot-shop",exp:"dot-exp",beauty:"dot-beauty",transit:"dot-transit",tip:"dot-tip"};
+const badgeColors={food:"b-food",shop:"b-shop",exp:"b-exp",beauty:"b-beauty",transit:"b-transit",tip:"b-tip"};
+const typeLabel={food:"Food",shop:"Shop",exp:"Experience",beauty:"Beauty",transit:"Transit",tip:"Tip"};
+
+function buildPlanner(){
+  const tabsEl=document.getElementById("cityTabs");
+  const viewsEl=document.getElementById("cityViews");
+  cities.forEach((city,ci)=>{
+    const tab=document.createElement("button");
+    tab.className="city-tab"+(ci===0?" active":"");
+    tab.textContent=city.label;
+    tab.onclick=()=>{
+      document.querySelectorAll(".city-tab").forEach(t=>t.classList.remove("active"));
+      document.querySelectorAll(".city-view").forEach(v=>v.classList.remove("active"));
+      tab.classList.add("active");
+      document.getElementById("cv-"+city.id).classList.add("active");
+    };
+    tabsEl.appendChild(tab);
+
+    const view=document.createElement("div");
+    view.className="city-view"+(ci===0?" active":"");
+    view.id="cv-"+city.id;
+
+    const dayTabs=document.createElement("div");
+    dayTabs.className="day-tabs";
+    const dayViews=document.createElement("div");
+
+    city.days.forEach((day,di)=>{
+      const dtab=document.createElement("button");
+      dtab.className="day-tab"+(di===0?" active":"");
+      dtab.textContent="Day "+(di+1);
+      dtab.onclick=()=>{
+        view.querySelectorAll(".day-tab").forEach(t=>t.classList.remove("active"));
+        view.querySelectorAll(".day-view").forEach(v=>v.classList.remove("active"));
+        dtab.classList.add("active");
+        document.getElementById("dv-"+city.id+"-"+di).classList.add("active");
+      };
+      dayTabs.appendChild(dtab);
+
+      const dview=document.createElement("div");
+      dview.className="day-view"+(di===0?" active":"");
+      dview.id="dv-"+city.id+"-"+di;
+
+      const counts={food:0,shop:0,exp:0,beauty:0};
+      day.slots.forEach(s=>{if(counts[s.type]!==undefined)counts[s.type]++;});
+
+      dview.innerHTML=`<div class="day-header">${day.title}</div><div class="day-subtitle">${day.subtitle}</div>
+      <div class="day-summary">${Object.entries(counts).filter(([,v])=>v>0).map(([k,v])=>`<span class="summary-pill">${v} ${typeLabel[k]||k}</span>`).join("")}</div>`;
+
+      const tl=document.createElement("div");
+      tl.className="timeline";
+      day.slots.forEach((slot,si)=>{
+        const el=document.createElement("div");
+        el.className="slot";
+        el.innerHTML=`<div class="time-col">${slot.t}</div>
+        <div class="dot-col"><div class="dot ${typeColors[slot.type]||"dot-transit"}"></div>${si<day.slots.length-1?'<div class="dot-line"></div>':''}</div>
+        <div class="slot-body"><div class="slot-name">${slot.n}</div>${slot.note?`<div class="slot-note">${slot.note}</div>`:""}
+        <span class="badge ${badgeColors[slot.type]||"b-transit"}">${typeLabel[slot.type]||slot.type}</span></div>`;
+        tl.appendChild(el);
+      });
+      dview.appendChild(tl);
+      dayViews.appendChild(dview);
+    });
+
+    view.appendChild(dayTabs);
+    view.appendChild(dayViews);
+    viewsEl.appendChild(view);
+  });
+}
+buildPlanner();
+</script>
